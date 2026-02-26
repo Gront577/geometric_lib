@@ -1,0 +1,100 @@
+# 1. Проверка списка репозиториев
+echo "1: подключенные репозитории"
+cat /etc/apt/sources.list | grep "^deb"
+ls -la /etc/apt/sources.list.d/
+
+# 2. Проверка обновления кэша
+echo "2: результат apt update"
+tail -5 /var/log/apt/history.log | grep "Start-Date" || echo "Кэш обновлен"
+
+# 3. Проверка информации о build-essential
+echo "3: информация о пакете"
+apt show build-essential | grep -E "Package|Version|Description"
+
+# 4. Проверка установки build-essential
+echo "4: установленные компоненты"
+dpkg -l | grep build-essential
+which gcc g++ make
+gcc --version | head -1
+
+# 5. Проверка поиска пакета bastet
+echo "5: найденный пакет"
+apt-cache search "clone with a bastard algorithm" | grep bastet
+
+# 6. Проверка скачанных исходников
+echo "6: исходные коды "
+ls -la ~/bastet-source/
+ls -la ~/bastet-source/bastet-*/
+
+# 7. Проверка компиляции
+echo "7: результат компиляции "
+ls -la ~/bastet-source/bastet-*/bastet
+file ~/bastet-source/bastet-*/bastet
+
+# 8. Проверка установки и прав доступа
+echo "8: установленный bastet"
+which bastet
+ls -l /usr/local/bin/bastet
+stat -c "%a %n" /usr/local/bin/bastet
+
+# 9. Проверка доступа для всех пользователей
+echo "9: проверка прав доступа"
+ls -l /usr/local/bin/bastet
+sudo -u nobody /usr/local/bin/bastet --version 2>&1 | head -1 || echo "программа запускается"
+
+# 10. Проверка файла task10.log
+echo "10: список установленных пакетов"
+ls -l task10.log
+wc -l task10.log
+head -5 task10.log
+
+# 11. Проверка файла task11.log (зависимости gcc)
+echo "11: зависимости gcc"
+ls -l task11.log
+grep -c "Depends:" task11.log
+head -10 task11.log
+
+# 12. Проверка файла task12.log (обратные зависимости libgpm2)
+echo "12: обратные зависимости libgpm2 "
+ls -l task12.log
+head -10 task12.log
+
+# 13. Проверка локального репозитория
+echo "13: файлы в локальном репозитории"
+ls -la ~/localrepo/
+ls -la ~/localrepo/*.deb | wc -l
+
+# 14. Проверка файлов Packages и Release
+echo "14: индексы репозитория"
+ls -la ~/localrepo/Packages*
+cat ~/localrepo/Release | head -5
+grep -c "Package:" ~/localrepo/Packages
+
+# 15. Проверка подключения репозитория
+echo "15: подключенный локальный репозиторий"
+cat /etc/apt/sources.list.d/localrepo.list
+apt-cache policy | grep -A 3 "localrepo"
+
+# 16. Проверка информации о репозиториях
+echo "16: информация о репозиториях "
+apt-cache policy | grep -E "repo|http|file" | head -15
+
+# 17. Проверка файла task16.log (версии htop)
+echo "17: доступные версии htop"
+ls -l task16.log
+cat task16.log
+apt-cache policy htop
+
+# 18. Проверка установленной версии htop
+echo "18: установленная версия htop"
+htop --version
+dpkg -l | grep htop
+apt-cache policy htop | grep "Installed"
+
+# 19. Проверка модифицированного nano
+echo "19: модифицированный nano "
+ls -la /usr/local/bin/newnano
+file /usr/local/bin/newnano
+which newnano
+dpkg -l | grep nano
+cat /var/lib/dpkg/info/nano.postinst 2>/dev/null || echo "проверьте postinst" 
