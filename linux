@@ -1,0 +1,111 @@
+# 1
+cat /etc/apt/sources.list | grep "^deb"
+
+# 2
+apt update
+
+# 3
+apt show build-essential
+
+# 4
+apt install build-essential -V
+
+# 5
+apt-cache search "clone with a bastard algorithm"
+
+# 6
+apt-get source bastet
+mkdir -p ~/bastet-source
+mv bastet-* ~/bastet-source/
+cd ~/bastet-source
+
+# 7
+cd bastet-*/
+apt install -y libboost-dev libncurses-dev
+make
+
+# 8
+if ! grep -q "^install:" Makefile; then
+    cat >> Makefile << 'EOF'
+
+install:
+	cp bastet /usr/local/bin/
+	chmod u=rwx,g=rx,o=rx /usr/local/bin/bastet
+EOF
+fi
+make install
+chmod u=rwx,g=rx,o=rx /usr/local/bin/bastet
+
+# 9
+ls -l /usr/local/bin/bastet
+if id nobody &>/dev/null; then
+    sudo -u nobody /usr/local/bin/bastet --help
+else
+    echo "Права должны быть -rwxr-xr-x (u=rwx,g=rx,o=rx)"
+fi
+
+# 10
+dpkg --get-selections | grep -w install | cut -f1 > task10.log
+
+# 11
+apt-cache depends gcc > task11.log
+
+# 12
+apt-cache rdepends libgpm2 > task12.log
+
+# 13
+mkdir -p ~/localrepo
+cd ~/localrepo
+wget -nv http://snapshot.debian.org/archive/debian/20250209T210016Z/pool/main/h/htop/htop_3.3.0-5_amd64.deb
+wget -nv http://snapshot.debian.org/archive/debian/20230227T025930Z/pool/main/h/htop/htop_3.2.2-2_amd64.deb
+wget -nv http://snapshot.debian.org/archive/debian/20220603T163609Z/pool/main/h/htop/htop_3.2.1-1_amd64.deb
+wget -nv http://snapshot.debian.org/archive/debian/20220502T205642Z/pool/main/h/htop/htop_3.2.0-1_amd64.deb
+wget -nv http://snapshot.debian.org/archive/debian/20210502T143907Z/pool/main/h/htop/htop_3.0.5-7_amd64.deb
+
+# 14
+apt install -y dpkg-dev
+dpkg-scanpackages --multiversion . /dev/null > Packages
+gzip -kf Packages
+cat > Release << 'EOF'
+Origin: My Local Repo
+Label: My Local Repo
+Suite: stable
+Version: 1.0
+Codename: myrepo
+Architectures: amd64
+Components: main
+Description: My local APT repository
+EOF
+
+# 15
+echo "deb [trusted=yes] file:///root/localrepo ./" > /etc/apt/sources.list.d/localrepo.list
+apt update
+
+# 16
+apt-cache policy
+
+# 17
+apt-cache madison htop > task16.log
+
+# 18
+SECOND_VERSION=$(apt-cache madison htop | head -2 | tail -1 | awk '{print $3}')
+apt install -y htop=$SECOND_VERSION
+
+# 19
+cd ~
+apt download nano
+dpkg-deb -R nano_*.deb new_nano/
+mkdir -p new_nano/usr/local/bin
+mkdir -p new_nano/DEBIAN
+cat > new_nano/DEBIAN/postinst << 'EOF'
+#!/bin/sh
+set -e
+ln -sf /bin/nano /usr/local/bin/newnano
+exit 0
+EOF
+chmod 755 new_nano/DEBIAN/postinst
+dpkg-deb -b new_nano/ nano-modified.deb
+dpkg -i nano-modified.deb
+
+# 20
+echo "В APT есть утилиты для управления пакетами, библиотеки, система разрешения зависимостей, поддержка различных источников, механизмы верификации, возможность модификации пакетов, интеграция с dpkg." > bonus.txt
